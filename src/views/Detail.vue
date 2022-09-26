@@ -8,41 +8,20 @@
     </template>
   </van-nav-bar>
 
-  <van-pull-refresh
-    v-model="refreshing"
-    @refresh="onRefresh"
-    success-text="刷新成功"
-    style="margin-top: var(--van-nav-bar-height)"
-  >
-    <van-list
-      v-model:loading="loading"
-      :finished="finished"
-      finished-text="没有更多了"
-      @load="onLoad"
-    >
-      <van-grid :column-num="3" :border="false" :center="false">
-        <van-grid-item
-          v-for="(item, index) in rows"
-          :key="item.id"
-          clickable
-          @click="onClick(index)"
-        >
-          <van-image
-            v-if="item.fileType == 'PICTURE'"
-            :src="item.pic.picUrl"
-            alt=""
-          />
-          <van-image
-            v-if="item.fileType == 'VIDEO'"
-            :src="item.video.coverUrl"
-            alt=""
-          />
+  <van-pull-refresh v-model="refreshing" @refresh="onRefresh" success-text="刷新成功"
+    style="margin-top: var(--van-nav-bar-height)">
+    <van-list v-model:loading="loading" :finished="finished" finished-text="没有更多了" @load="onLoad">
+      <van-grid :column-num="3" :border="false" :center="false" square gutter="2">
+        <van-grid-item v-for="(item, index) in rows" :key="item.id" clickable @click="onClick(index)">
+          <van-image fit="cover" v-if="item.fileType == 'PICTURE'" :src="item.pic.picUrl" alt="" style="height:100%;" />
+          <van-image fit="cover" v-if="item.fileType == 'VIDEO'" :src="item.video.coverUrl" alt=""
+            style="height:100%;" />
         </van-grid-item>
       </van-grid>
     </van-list>
   </van-pull-refresh>
 
-  <van-uploader multiple :after-read="afterRead">
+  <van-uploader multiple :after-read="afterRead" style="position:fixed;bottom:2rem;right:2rem;">
     <van-button icon="plus" type="primary"></van-button>
   </van-uploader>
 </template>
@@ -50,7 +29,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
-import { ImagePreview } from "vant";
+import { ImagePreview, Toast } from "vant";
 import config from "@/config.js";
 
 import $http from "@/http";
@@ -97,7 +76,7 @@ const getAlbumDetail = () => {
     .then((resp) => {
       Object.assign(albumDetail, resp);
     })
-    .catch((e) => {});
+    .catch((e) => { });
 };
 
 const onLoad = () => {
@@ -137,6 +116,13 @@ const onClick = (index) => {
 };
 
 const afterRead = (files) => {
+  Toast.loading({
+    message: '正在上传...',
+    forbidClick: true,
+    overlay: true,
+    duration: 0,
+  });
+
   let apiFiles = [];
   if (!files.length) {
     apiFiles.push(files.file);
@@ -159,6 +145,15 @@ const afterRead = (files) => {
     .then((resp) => {
       onRefresh();
     })
-    .catch((e) => {});
+    .catch((e) => { })
+    .finally(() => {
+      Toast.clear();
+    });
 };
 </script>
+
+<style>
+.grid-item {
+  padding: 0;
+}
+</style>

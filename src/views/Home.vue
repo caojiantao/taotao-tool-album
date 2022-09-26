@@ -21,7 +21,7 @@
       finished-text="没有更多了"
       @load="onLoad"
     >
-      <van-grid :column-num="2" :border="false" :center="false" clickable>
+      <van-grid :column-num="2" :border="false" :center="false" clickable gutter="10">
         <van-grid-item
           v-for="item in rows"
           :key="item.id"

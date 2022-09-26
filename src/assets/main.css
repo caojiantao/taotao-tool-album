@@ -1,4 +1,5 @@
 @import "./base.css";
+@import "./vant.css";
 
 #app {
   margin: 0 auto;

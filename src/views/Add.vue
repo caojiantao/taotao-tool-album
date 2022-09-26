@@ -7,13 +7,13 @@
       <van-field v-model="addAblum.name" placeholder="填写相册名称" :rules="[{ required: true, message: '请填写相册名称' }]"
         size="large" />
       <van-field v-model="addAblum.descrpition" placeholder="描述" />
-      <van-field label="封面">
+      <van-field label="封面" input-align="right">
         <template #input>
           <van-uploader v-model="files" :max-count="1" />
         </template>
       </van-field>
     </van-cell-group>
-    <div style=" margin: 16px;">
+    <div style="margin: 16px;">
       <van-button block type="primary" native-type="submit">
         完成
       </van-button>
@@ -24,6 +24,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router';
+import { Toast } from 'vant';
 
 import $http from '@/http'
 
@@ -44,6 +45,13 @@ addAblum.file = computed(() => {
 
 
 const onSubmit = () => {
+  Toast.loading({
+    message: '正在保存...',
+    forbidClick: true,
+    overlay: true,
+    duration: 0,
+  });
+
   $http({
     url: `/album/addAlbum`,
     method: 'post',
@@ -54,5 +62,9 @@ const onSubmit = () => {
   }).then(resp => {
     router.push(`/${resp}`);
   }).catch(e => { })
+    .finally(() => {
+      Toast.clear();
+    })
+
 }
 </script>
