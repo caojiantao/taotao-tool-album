@@ -1,25 +1,25 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from "vue-router";
 
-import Home from '@/views/Home.vue'
-import Detail from '@/views/Detail.vue'
-import AddAlbum from '@/views/AddAlbum.vue'
+import Home from "@/views/Home.vue";
+import Detail from "@/views/Detail.vue";
+import Add from "@/views/Add.vue";
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: "/",
       component: Home,
     },
     {
-      path: '/:albumId',
+      path: "/:albumId",
       component: Detail,
     },
     {
-      path: '/addAlbum',
-      component: AddAlbum,
-    }
+      path: "/add",
+      component: Add,
+    },
   ],
-})
+});
 
-export default router
+export default router;
