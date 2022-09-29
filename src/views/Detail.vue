@@ -21,7 +21,8 @@
     </van-list>
   </van-pull-refresh>
 
-  <van-uploader multiple :after-read="afterRead" style="position:fixed;bottom:2rem;right:2rem;">
+  <van-uploader multiple :after-read="afterRead" accept="image/*,video/*"
+    style="position:fixed;bottom:2rem;right:2rem;">
     <van-button icon="plus" type="primary"></van-button>
   </van-uploader>
 </template>
@@ -31,6 +32,7 @@ import { ref, reactive, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { ImagePreview, Toast } from "vant";
 import config from "@/config.js";
+import { parseVideo } from "@/utils.js";
 
 import $http from "@/http";
 
@@ -115,7 +117,7 @@ const onClick = (index) => {
   });
 };
 
-const afterRead = (files) => {
+const afterRead = async (files) => {
   Toast.loading({
     message: '正在上传...',
     forbidClick: true,
@@ -131,11 +133,23 @@ const afterRead = (files) => {
   }
 
   let data = new FormData();
-  data.append("albumId", albumId);
-  data.append("fileType", "PICTURE");
-  apiFiles.forEach((item) => data.append("files", item));
+
+  for (let index = 0; index < apiFiles.length; index++) {
+    let file = apiFiles[index];
+    data.append(`fileItems[${index}].file`, file)
+
+    let isVideo = file.type.startsWith('video')
+    if (isVideo) {
+      // 解析视频，时长
+      let fileUrl = window.URL.createObjectURL(file);
+      let ext = await parseVideo(fileUrl).then(ext => ext);
+      data.append(`fileItems[${index}].videoCover`, ext.coverFile)
+      data.append(`fileItems[${index}].videoSeconds`, ext.seconds)
+    }
+  };
+
   $http({
-    url: `/album/batchUploadPic`,
+    url: `/album/batchUploadFile?albumId=${albumId}`,
     method: "post",
     data: data,
     headers: {
