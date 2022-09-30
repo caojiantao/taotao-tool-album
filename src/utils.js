@@ -7,24 +7,28 @@ let parseExtOnCanplay = (v, c, delay) => {
     v.addEventListener('canplay', async () => {
       var w = v.videoWidth
       var h = v.videoHeight
+
+      c.width = w
+      c.height = h
+
       ctx.drawImage(v, 0, 0, w, h)
       let coverFile = await canvasToFile(c).then(blob => { return blob; })
       let ext = {
         coverFile: coverFile,
-        seconds: Math.round(v.duration),
+        second: Math.round(v.duration),
       }
+      v.pause();
       resolve(ext);
     }, false)
   })
 }
 
-let parseVideo = async (fileUrl) => {
-  var v = document.createElement("video");
-  v.autoplay = true;
+let parseVideo = (fileUrl) => {
+  var v = document.getElementById("tao-video");
   v.src = fileUrl;
-  var c = document.createElement("canvas")
-  var delay = 100
-  return await parseExtOnCanplay(v, c, delay);
+  var c = document.getElementById("tao-canvas")
+  var delay = 1000
+  return parseExtOnCanplay(v, c, delay);
 }
 
 export {

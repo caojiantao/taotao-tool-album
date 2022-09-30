@@ -13,9 +13,10 @@
     <van-list v-model:loading="loading" :finished="finished" finished-text="没有更多了" @load="onLoad">
       <van-grid :column-num="3" :border="false" :center="false" square gutter="2">
         <van-grid-item v-for="(item, index) in rows" :key="item.id" clickable @click="onClick(index)">
-          <van-image fit="cover" v-if="item.fileType == 'PICTURE'" :src="item.pic.picUrl" alt="" style="height:100%;" />
-          <van-image fit="cover" v-if="item.fileType == 'VIDEO'" :src="item.video.coverUrl" alt=""
-            style="height:100%;" />
+          <van-image fit="cover" :src="item.picUrl" alt="" style="height:100%;" />
+          <div v-if="item.fileType == 'video'"
+            style="position:absolute;right:0.2rem;bottom:0;color:white;font-weight: bold;">
+            {{fmtSecond(item.ext.second)}}</div>
         </van-grid-item>
       </van-grid>
     </van-list>
@@ -25,6 +26,9 @@
     style="position:fixed;bottom:2rem;right:2rem;">
     <van-button icon="plus" type="primary"></van-button>
   </van-uploader>
+
+  <video id="tao-video" autoplay style="display:none;"></video>
+  <canvas id="tao-canvas" style="display:none;"></canvas>
 </template>
 
 <script setup>
@@ -51,7 +55,6 @@ const albumDetail = reactive({
 
 const page = reactive({
   albumId: albumId,
-  fileType: "PICTURE",
   current: 1,
   size: 10,
 });
@@ -93,11 +96,16 @@ const onLoad = () => {
       }
       // 拼接图片地址链接
       resp.rows.forEach((item) => {
-        if (item.fileType == "PICTURE") {
-          item.pic.picUrl = config.getPicUrl(item.pic.filename);
-        } else if (item.fileType == "VIDEO") {
-          item.pic.coverUrl = config.getPicUrl(item.video.coverFilename);
+        let filename;
+        if (item.ext) {
+          item.ext = JSON.parse(item.ext);
         }
+        if (item.fileType == "image") {
+          filename = item.filename;
+        } else if (item.fileType == "video") {
+          filename = item.ext.coverFilename;
+        }
+        item.picUrl = config.getPicUrl(filename);
       });
       rows.value.push(...resp.rows);
       if (resp.rows.length == 0) {
@@ -112,7 +120,7 @@ const onLoad = () => {
 
 const onClick = (index) => {
   ImagePreview({
-    images: rows.value.map((item) => item.pic.picUrl),
+    images: rows.value.map((item) => item.picUrl),
     startPosition: index,
   });
 };
@@ -143,8 +151,8 @@ const afterRead = async (files) => {
       // 解析视频，时长
       let fileUrl = window.URL.createObjectURL(file);
       let ext = await parseVideo(fileUrl).then(ext => ext);
-      data.append(`fileItems[${index}].videoCover`, ext.coverFile)
-      data.append(`fileItems[${index}].videoSeconds`, ext.seconds)
+      data.append(`fileItems[${index}].fileExt.coverFile`, ext.coverFile)
+      data.append(`fileItems[${index}].fileExt.second`, ext.second)
     }
   };
 
@@ -164,10 +172,14 @@ const afterRead = async (files) => {
       Toast.clear();
     });
 };
-</script>
 
-<style>
-.grid-item {
-  padding: 0;
+const fmtSecond = (t) => {
+  let result = [];
+  while (t != 0) {
+    let n = t % 60;
+    t = Math.floor(t / 60);
+    result.push(((n < 10 && t > 0) ? "0" : "") + n);
+  }
+  return result.reverse().join(":")
 }
-</style>
+</script>
