@@ -2,9 +2,9 @@
   <van-nav-bar fixed>
     <template #title>
       <div class="header-title">相册</div>
-      <div class="header-subtitle">
-        {{ countInfo.album }}相册 {{ countInfo.pic }}图片
-        {{ countInfo.video }}视频
+      <div style="color:gray;font-size:.5rem;">
+        {{ homeResp.albumNum }}相册 {{ homeResp.imageNum }}图片
+        {{ homeResp.videoNum }}视频
       </div>
     </template>
   </van-nav-bar>
@@ -21,16 +21,16 @@
       finished-text="没有更多了"
       @load="onLoad"
     >
-      <van-grid :column-num="2" :border="false" :center="false" clickable square gutter="10">
+      <van-grid :column-num="2" :border="false" :center="false" clickable gutter="10">
         <van-grid-item
           v-for="item in rows"
           :key="item.id"
           @click="onClick(item.id)"
         >
-          <van-image :src="item.coverUrl" alt="" />
+          <van-image :src="item.coverUrl" radius="5" />
           <template v-if="item.id > 0">
-            <div>{{ item.name }}</div>
-            <div>{{ item.picNum + item.videoNum }} 张</div>
+            <div style="font-weight:bold;">{{ item.name }}</div>
+            <div style="color:gray;font-size:.5rem;">{{ item.picNum + item.videoNum }} 张</div>
           </template>
         </van-grid-item>
       </van-grid>
@@ -51,11 +51,7 @@ const refreshing = ref(false);
 const loading = ref(false);
 const finished = ref(false);
 
-const countInfo = reactive({
-  album: 0,
-  pic: 0,
-  video: 0,
-});
+const homeResp = reactive({});
 
 const page = reactive({
   current: 1,
@@ -77,7 +73,18 @@ onMounted(() => {
   onRefresh();
 });
 
+const getAlbumHome = () => {
+  $http({
+    url: `/album/getAlbumHomeResp`,
+  })
+    .then((resp) => {
+      Object.assign(homeResp, resp);
+    })
+    .catch((e) => { });
+};
+
 const onRefresh = () => {
+  getAlbumHome();
   finished.value = false;
   loading.value = true;
   page.current = 1;

@@ -60,7 +60,7 @@ const onSubmit = () => {
       'Content-Type': 'multipart/form-data',
     }
   }).then(resp => {
-    router.push(`/${resp}`);
+    router.push(`/`);
   }).catch(e => { })
     .finally(() => {
       Toast.clear();

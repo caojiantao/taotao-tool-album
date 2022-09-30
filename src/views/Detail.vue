@@ -1,8 +1,11 @@
 <template>
+  <video id="tao-video" autoplay  style="display:none;"></video>
+  <canvas id="tao-canvas" style="display:none;"></canvas>
+
   <van-nav-bar fixed>
     <template #title>
       <div class="header-title">{{ albumDetail.name }}</div>
-      <div class="header-subtitle">
+      <div style="color:gray;font-size:.5rem;">
         {{ albumDetail.picNum }}图片 {{ albumDetail.videoNum }}视频
       </div>
     </template>
@@ -12,7 +15,7 @@
     style="margin-top: var(--van-nav-bar-height)">
     <van-list v-model:loading="loading" :finished="finished" finished-text="没有更多了" @load="onLoad">
       <van-grid :column-num="3" :border="false" :center="false" square gutter="2">
-        <van-grid-item v-for="(item, index) in rows" :key="item.id" clickable @click="onClick(index)">
+        <van-grid-item v-for="(item, index) in rows" :key="item.id" clickable @click="onClick(item, index)">
           <van-image fit="cover" :src="item.picUrl" alt="" style="height:100%;" />
           <div v-if="item.fileType == 'video'"
             style="position:absolute;right:0.2rem;bottom:0;color:white;font-weight: bold;">
@@ -26,9 +29,6 @@
     style="position:fixed;bottom:2rem;right:2rem;">
     <van-button icon="plus" type="primary"></van-button>
   </van-uploader>
-
-  <video id="tao-video" autoplay style="display:none;"></video>
-  <canvas id="tao-canvas" style="display:none;"></canvas>
 </template>
 
 <script setup>
@@ -62,11 +62,11 @@ const page = reactive({
 const rows = ref([]);
 
 onMounted(() => {
-  getAlbumDetail();
   onRefresh();
 });
 
 const onRefresh = () => {
+  getAlbumDetail();
   refreshing.value = true;
   finished.value = false;
   loading.value = true;
@@ -118,11 +118,16 @@ const onLoad = () => {
     });
 };
 
-const onClick = (index) => {
-  ImagePreview({
-    images: rows.value.map((item) => item.picUrl),
-    startPosition: index,
-  });
+const onClick = (item, index) => {
+  if (item.fileType == 'image') {
+    ImagePreview({
+      images: rows.value.map((item) => item.picUrl),
+      startPosition: index,
+    });
+  } else if (item.fileType == 'video') {
+    let videoUrl = config.getPicUrl(item.filename);
+    window.open(videoUrl, "_blank");
+  }
 };
 
 const afterRead = async (files) => {
@@ -142,19 +147,7 @@ const afterRead = async (files) => {
 
   let data = new FormData();
 
-  for (let index = 0; index < apiFiles.length; index++) {
-    let file = apiFiles[index];
-    data.append(`fileItems[${index}].file`, file)
-
-    let isVideo = file.type.startsWith('video')
-    if (isVideo) {
-      // 解析视频，时长
-      let fileUrl = window.URL.createObjectURL(file);
-      let ext = await parseVideo(fileUrl).then(ext => ext);
-      data.append(`fileItems[${index}].fileExt.coverFile`, ext.coverFile)
-      data.append(`fileItems[${index}].fileExt.second`, ext.second)
-    }
-  };
+  apiFiles.forEach(item => data.append("files", item));
 
   $http({
     url: `/album/batchUploadFile?albumId=${albumId}`,
@@ -165,20 +158,19 @@ const afterRead = async (files) => {
     },
   })
     .then((resp) => {
+      Toast.clear();
       onRefresh();
     })
-    .catch((e) => { })
-    .finally(() => {
-      Toast.clear();
-    });
+    .catch((e) => { });
 };
 
 const fmtSecond = (t) => {
   let result = [];
-  while (t != 0) {
+  for (let i = 0; t != 0 || i < 2; i++) {
     let n = t % 60;
     t = Math.floor(t / 60);
-    result.push(((n < 10 && t > 0) ? "0" : "") + n);
+    let flag = (n < 10) && (i == 0 || t != 0);
+    result.push((flag ? "0" : "") + n);
   }
   return result.reverse().join(":")
 }

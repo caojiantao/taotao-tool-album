@@ -7,10 +7,9 @@ let parseExtOnCanplay = (v, c, delay) => {
     v.addEventListener('canplay', async () => {
       var w = v.videoWidth
       var h = v.videoHeight
-
       c.width = w
       c.height = h
-
+      ctx.clearRect(0, 0, w, h)
       ctx.drawImage(v, 0, 0, w, h)
       let coverFile = await canvasToFile(c).then(blob => { return blob; })
       let ext = {
@@ -27,7 +26,7 @@ let parseVideo = (fileUrl) => {
   var v = document.getElementById("tao-video");
   v.src = fileUrl;
   var c = document.getElementById("tao-canvas")
-  var delay = 1000
+  var delay = 100
   return parseExtOnCanplay(v, c, delay);
 }
 

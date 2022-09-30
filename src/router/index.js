@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import Home from "@/views/Home.vue";
 import Detail from "@/views/Detail.vue";
 import Add from "@/views/Add.vue";
+import Video from "@/views/Video.vue";
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -18,6 +19,10 @@ const router = createRouter({
     {
       path: "/add",
       component: Add,
+    },
+    {
+      path: "/video",
+      component: Video,
     },
   ],
 });
