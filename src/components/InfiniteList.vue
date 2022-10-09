@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, defineProps, defineEmits } from "vue";
+import { ref, reactive, onMounted } from "vue";
 
 import $http from "@/http";
 
@@ -27,8 +27,6 @@ const page = reactive({
   size: 10,
 });
 
-const rows = ref([]);
-
 onMounted(() => {
   Object.assign(page, props.context.params);
   onRefresh();
@@ -44,13 +42,14 @@ const onRefresh = () => {
 };
 
 const onLoad = () => {
+  const context = props.context;
   $http({
-    url: props.context.url,
+    url: context.url,
     params: page,
   })
     .then((resp) => {
       if (refreshing.value) {
-        rows.value = [];
+        context.rows = [];
         refreshing.value = false;
       }
       if (resp.rows.length == 0) {
@@ -58,7 +57,7 @@ const onLoad = () => {
         return;
       }
       emits("afterLoad", resp.rows);
-      rows.value.push(...resp.rows);
+      context.rows.push(...resp.rows);
     })
     .finally(() => {
       loading.value = false;
