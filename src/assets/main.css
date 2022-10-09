@@ -4,3 +4,14 @@
 #app {
   margin: 0 auto;
 }
+
+.header-title {
+  font-weight: bold;
+}
+
+.header-subtitle {
+  font-size: .7rem;
+  color: gray;
+  font-weight: bold;
+  line-height: var(--van-line-height-xs);
+}

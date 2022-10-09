@@ -2,7 +2,7 @@ import { createRouter, createWebHashHistory } from "vue-router";
 
 import Home from "@/views/Home.vue";
 import Detail from "@/views/Detail.vue";
-import Add from "@/views/Add.vue";
+import Save from "@/views/Save.vue";
 import Video from "@/views/Video.vue";
 
 const router = createRouter({
@@ -17,8 +17,8 @@ const router = createRouter({
       component: Detail,
     },
     {
-      path: "/add",
-      component: Add,
+      path: "/save",
+      component: Save,
     },
     {
       path: "/video",
