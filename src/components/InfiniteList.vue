@@ -18,9 +18,16 @@ const loading = ref(false);
 const finished = ref(false);
 
 const props = defineProps({
-  context: {}
+  context: {
+    url: "",
+    params: {},
+    rows: [],
+  }
 });
-const emits = defineEmits(["initPage", "afterLoad"])
+// 初始值 rows json 格式，在 refresh 时重置
+let initRows = [];
+
+const emits = defineEmits(["afterLoad"])
 
 const page = reactive({
   current: 1,
@@ -28,7 +35,7 @@ const page = reactive({
 });
 
 onMounted(() => {
-  Object.assign(page, props.context.params);
+  initRows = JSON.stringify(props.context.rows);
   onRefresh();
 });
 
@@ -37,19 +44,19 @@ const onRefresh = () => {
   finished.value = false;
   loading.value = true;
   page.current = 1;
-  emits("initPage");
   onLoad();
 };
 
 const onLoad = () => {
   const context = props.context;
+  Object.assign(page, context.params);
   $http({
     url: context.url,
     params: page,
   })
     .then((resp) => {
       if (refreshing.value) {
-        context.rows = [];
+        context.rows = JSON.parse(initRows);
         refreshing.value = false;
       }
       if (resp.rows.length == 0) {
@@ -64,4 +71,9 @@ const onLoad = () => {
       page.current++;
     });
 };
+
+defineExpose({
+  // 暴露整体刷新方法
+  onRefresh,
+})
 </script>

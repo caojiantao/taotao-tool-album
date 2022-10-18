@@ -21,10 +21,11 @@
     </template>
   </van-nav-bar>
 
-  <infinite-list :context="infiniteListContext" @initPage="initPage" @afterLoad="afterLoad">
+  <infinite-list ref="infiniteList" :context="infiniteListContext" @afterLoad="afterLoad">
     <van-checkbox-group v-model="checked">
       <van-grid :column-num="3" :border="false" :center="false" square gutter="1.5">
-        <van-grid-item v-for="(item, index) in infiniteListContext.rows" :key="item.id" clickable @click="onPreview(item, index)">
+        <van-grid-item v-for="(item, index) in infiniteListContext.rows" :key="item.id" clickable
+          @click="onPreview(item, index)">
           <van-image fit="cover" :src="item.picUrl" alt="" style="height:100%;" />
           <div class="header-subtitle" v-if="item.fileType == 'video'"
             style="position:absolute;right:0.2rem;bottom:0;color:white;">
@@ -38,24 +39,25 @@
     </van-checkbox-group>
   </infinite-list>
 
-  <van-uploader multiple :after-read="afterRead" accept="image/*,video/*"
+  <van-uploader v-if="!batchHandle" multiple :after-read="afterRead" accept="image/*,video/*"
     style="position:fixed;bottom:1rem;right:1rem;">
     <van-button icon="plus" type="primary"></van-button>
   </van-uploader>
 </template>
 
 <script setup>
-import { ref, reactive, watch } from "vue";
+import { ref, reactive, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { ImagePreview, Toast } from "vant";
+import { ImagePreview, Toast, Dialog } from "vant";
 import config from "@/config.js";
 import InfiniteList from "@/components/InfiniteList.vue";
 
-import $http from "@/http";
+import httpProxy from "@/http/proxy.js";
 
 const router = useRouter();
 const albumId = router.currentRoute.value.params["albumId"];
 
+const infiniteList = ref();
 const infiniteListContext = reactive({
   url: `/album/getAlbumFilePage?albumId=${albumId}`,
   params: {},
@@ -93,15 +95,18 @@ watch(batchHandle, (newValue, oldValue) => {
   }
 })
 
+onMounted(() => {
+  initPage();
+})
+
 // 页面初始化，填充基本信息
 const initPage = () => {
-  $http({
+  httpProxy({
     url: `/album/getAlbumById?albumId=${albumId}`,
-  })
-    .then((resp) => {
+    success: (resp) => {
       Object.assign(albumDetail, resp);
-    })
-    .catch((e) => { });
+    },
+  });
 };
 
 // 分页请求完成后，生成图片地址
@@ -147,13 +152,6 @@ const onPreview = (item, index) => {
 };
 
 const afterRead = async (files) => {
-  Toast.loading({
-    message: '正在上传...',
-    forbidClick: true,
-    overlay: true,
-    duration: 0,
-  });
-
   let apiFiles = [];
   if (!files.length) {
     apiFiles.push(files.file);
@@ -165,23 +163,22 @@ const afterRead = async (files) => {
 
   apiFiles.forEach(item => data.append("files", item));
 
-  $http({
+  httpProxy({
     url: `/album/batchUploadFile?albumId=${albumId}`,
     method: "post",
     data: data,
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    toast: "正在上传...",
+    success: resp => {
+      infiniteList.value.onRefresh();
+    }
   })
-    .then((resp) => {
-      Toast.clear();
-      onRefresh();
-    })
-    .catch((e) => { });
 };
 
 const onClickLeft = () => {
-  if (batchHandle) {
+  if (batchHandle.value) {
     batchHandle.value = false;
   } else {
     history.back();
@@ -189,23 +186,22 @@ const onClickLeft = () => {
 };
 
 const onClickDelete = () => {
-  Toast.loading({
-    message: '正在删除...',
-    forbidClick: true,
-    overlay: true,
-    duration: 0,
+  Dialog.confirm({
+    title: '确定删除？',
+    message: '删除后无法恢复，确定删除？',
+  }).then(() => {
+    httpProxy({
+      url: `/album/batchRemoveFile?albumId=${albumId}`,
+      method: "post",
+      data: checked.value,
+      toast: "正在删除...",
+      success: resp => {
+        batchHandle.value = false;
+        infiniteList.value.onRefresh();
+      }
+    });
+  }).catch(() => {
+    // on cancel
   });
-  $http({
-    url: `/album/batchRemoveFile?albumId=${albumId}`,
-    method: "post",
-    data: checked.value,
-  })
-    .then((resp) => {
-      batchHandle.value = false;
-
-      Toast.clear();
-      onRefresh();
-    })
-    .catch((e) => { });
 }
 </script>
