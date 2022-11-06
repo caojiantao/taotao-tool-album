@@ -65,7 +65,7 @@ const initPage = () => {
 
 const afterLoad = (rows) => {
   rows.forEach((item) => {
-    item.coverUrl = config.getPicUrl(item.coverFilename);
+    item.coverUrl = config.getFileUrl(item.coverFilename, "thumbnail");
   });
 
 };

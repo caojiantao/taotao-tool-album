@@ -14,6 +14,6 @@ const src = ref("");
 
 onMounted(() => {
   let query = router.currentRoute.value.query;
-  src.value = config.getPicUrl(query.filename);
+  src.value = config.getFileUrl(query.filename, "video");
 });
 </script>

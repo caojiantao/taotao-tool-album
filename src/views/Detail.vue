@@ -31,7 +31,7 @@
             style="position:absolute;right:0.2rem;bottom:0;color:white;">
             {{config.fmtSecond(item.ext.second)}}</div>
 
-          <van-checkbox :name="item.id" v-if="batchHandle" style="position:absolute;top:0.2rem;right:0.2rem;"
+          <van-checkbox :name="item.albumFileId" v-if="batchHandle" style="position:absolute;top:0.2rem;right:0.2rem;"
             @click.stop>
           </van-checkbox>
         </van-grid-item>
@@ -118,11 +118,11 @@ const afterLoad = rows => {
     }
     if (item.fileType == "image") {
       filename = item.filename;
-      item.picUrl = config.getPicUrl(filename);
+      item.picUrl = config.getFileUrl(filename, "thumbnail");
     } else if (item.fileType == "video") {
       if (item.ext) {
         filename = item.ext.coverFilename;
-        item.picUrl = config.getPicUrl(filename);
+        item.picUrl = config.getFileUrl(filename, "thumbnail");
       }
     }
   });
@@ -131,10 +131,10 @@ const afterLoad = rows => {
 const onPreview = (item, index) => {
   if (batchHandle.value) {
     let set = new Set(checked.value);
-    if (set.has(item.id)) {
-      set.delete(item.id);
+    if (set.has(item.albumFileId)) {
+      set.delete(item.albumFileId);
     } else {
-      set.add(item.id);
+      set.add(item.albumFileId);
     }
     checked.value = Array.from(set);
     return;
@@ -146,7 +146,7 @@ const onPreview = (item, index) => {
       startPosition: index,
     });
   } else if (item.fileType == 'video') {
-    let videoUrl = config.getPicUrl(item.filename);
+    let videoUrl = config.getFileUrl(item.filename, "video");
     window.open(videoUrl, "_blank");
   }
 };

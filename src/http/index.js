@@ -11,6 +11,9 @@ http.interceptors.response.use(
     if (apiResp.code == -1) {
       Toast(apiResp.msg);
       return Promise.reject(new Error());
+    } else if (apiResp.code == -2) {
+      let redirectUrl = encodeURI(window.location.href);
+      window.location.href = `/login.html?redirectUrl=${redirectUrl}`;
     }
     return apiResp.data;
   },

@@ -6,7 +6,7 @@
     <van-cell-group inset>
       <van-field v-model="addAblum.name" placeholder="填写相册名称" :rules="[{ required: true, message: '请填写相册名称' }]"
         size="large" />
-      <van-field v-model="addAblum.descrpition" placeholder="描述" />
+      <van-field v-model="addAblum.description" placeholder="描述" />
       <van-field label="封面" input-align="right">
         <template #input>
           <van-uploader v-model="files" :max-count="1" />
@@ -24,9 +24,8 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router';
-import { Toast } from 'vant';
 
-import $http from '@/http'
+import httpProxy from "@/http/proxy.js";
 
 const router = useRouter();
 
@@ -43,28 +42,18 @@ addAblum.file = computed(() => {
   }
 });
 
-
 const onSubmit = () => {
-  Toast.loading({
-    message: '正在保存...',
-    forbidClick: true,
-    overlay: true,
-    duration: 0,
-  });
-
-  $http({
+  httpProxy({
     url: `/album/addAlbum`,
     method: 'post',
     data: addAblum,
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
+    },
+    toast: "正在保存...",
+    success: resp => {
+      router.push(`/`);
     }
-  }).then(resp => {
-    router.push(`/`);
-  }).catch(e => { })
-    .finally(() => {
-      Toast.clear();
-    })
-
+  })
 }
 </script>

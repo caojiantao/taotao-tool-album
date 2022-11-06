@@ -1,6 +1,6 @@
 export default {
-  getPicUrl: (filename) => {
-    return `${import.meta.env.VITE_PIC_PREFIX}/${filename}`;
+  getFileUrl: (filename, path) => {
+    return `${import.meta.env.VITE_PIC_PREFIX}/${path}/${filename}`;
   },
   fmtSecond: (t) => {
     let result = [];
